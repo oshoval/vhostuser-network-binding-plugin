@@ -318,7 +318,7 @@ var _ = Describe("vhostuser network configurator", func() {
 			vmi := buildVMI(ifaces, networks)
 			vmi.Annotations = map[string]string{domain.VirtualIOMMUAnnotation: "true"}
 
-			testMutator, err := domain.NewVhostUserNetworkConfigurator(vmi, defaultDriver("default"), "vhostuser")
+			testMutator, err := domain.NewVhostUserNetworkConfigurator(vmi, mockDriver(claimMeta("default")), "vhostuser")
 			Expect(err).ToNot(HaveOccurred())
 
 			mutatedDomain, err := testMutator.Mutate(&libvirtxml.Domain{})
@@ -331,7 +331,7 @@ var _ = Describe("vhostuser network configurator", func() {
 			networks := []vmschema.Network{draNetwork("default", "default", "vhost-port")}
 			vmi := buildVMI(ifaces, networks)
 
-			testMutator, err := domain.NewVhostUserNetworkConfigurator(vmi, defaultDriver("default"), "vhostuser")
+			testMutator, err := domain.NewVhostUserNetworkConfigurator(vmi, mockDriver(claimMeta("default")), "vhostuser")
 			Expect(err).ToNot(HaveOccurred())
 
 			mutatedDomain, err := testMutator.Mutate(&libvirtxml.Domain{})

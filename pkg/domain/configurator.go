@@ -32,7 +32,8 @@ import (
 const (
 	// MaxQueueNum is the maximum number if virtqueues.
 	MaxQueueNum = uint(256)
-	// QueueSize is the default queue size.
+	// QEMU virtio queue sizes are limited to 1024 by the active KubeVirt/QEMU
+	// build. Grout's host-side vhost port may use a different qsize.
 	QueueSize = uint(1024)
 	// VirtualIOMMUAnnotation opts a VMI into an emulated Intel IOMMU. This lets
 	// a DPDK guest bind virtio devices to vfio-pci.
@@ -209,7 +210,14 @@ func (p VhostUserNetworkConfigurator) generateDomainInterface(vhostIface *VhostU
 		domIface.ACPI = &libvirtxml.DomainDeviceACPI{Index: uint(vhostIface.VmiSpecIface.ACPIIndex)}
 	}
 
-	domIface.MTU = &libvirtxml.DomainInterfaceMTU{Size: vhostIface.Metadata.MTU}
+	mtu := vhostIface.Metadata.MTU
+	if mtu < 9000 {
+		// The native DPDK/TRex path initializes its port above 1500 bytes. Keep
+		// the vhost-user frontend jumbo-capable even if an older DRA metadata
+		// projection supplied the historical 1500-byte default.
+		mtu = 9000
+	}
+	domIface.MTU = &libvirtxml.DomainInterfaceMTU{Size: mtu}
 
 	return domIface, nil
 }
